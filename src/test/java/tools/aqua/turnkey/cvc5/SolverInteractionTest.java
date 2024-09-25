@@ -32,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.BOOLEAN;
 
 import io.github.cvc5.CVC5ApiException;
-import io.github.cvc5.Context;
 import io.github.cvc5.Result;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
@@ -41,97 +40,82 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 /** Test more complicated solver interactions that require the entire ecosystem to be loaded. */
-class SolverInteractionTest {
+class SolverInteractionTest extends CVC5AutoCleaner {
 
   /** Check the satisfiability of a simple comparison. */
   @Test
   void testSimpleSolving() {
-    try {
-      final TermManager termManager = new TermManager();
+    final TermManager termManager = new TermManager();
 
-      final Term x = termManager.mkConst(termManager.getIntegerSort(), "x");
-      final Term c = termManager.mkInteger(15);
-      final Term b = termManager.mkTerm(GT, x, c);
+    final Term x = termManager.mkConst(termManager.getIntegerSort(), "x");
+    final Term c = termManager.mkInteger(15);
+    final Term b = termManager.mkTerm(GT, x, c);
 
-      final Solver solver = new Solver(termManager);
-      solver.setOption("produce-models", "true");
+    final Solver solver = new Solver(termManager);
+    solver.setOption("produce-models", "true");
 
-      assertThat(solver.checkSatAssuming(b)).extracting(Result::isSat, BOOLEAN).isTrue();
+    assertThat(solver.checkSatAssuming(b)).extracting(Result::isSat, BOOLEAN).isTrue();
 
-      final Term evaluated = solver.getValue(b);
-      assertThat(Optional.of(evaluated)).get().extracting(Term::getBooleanValue, BOOLEAN).isTrue();
-
-    } finally {
-      Context.deletePointers();
-    }
+    final Term evaluated = solver.getValue(b);
+    assertThat(Optional.of(evaluated)).get().extracting(Term::getBooleanValue, BOOLEAN).isTrue();
   }
 
   /** Check the satisfiability of two floating-point expressions. */
   @Test
   void testArithmeticSolving() throws CVC5ApiException {
-    try {
-      final TermManager termManager = new TermManager();
+    final TermManager termManager = new TermManager();
 
-      final Term x = termManager.mkConst(termManager.getIntegerSort(), "x");
-      final Term xReal = termManager.mkTerm(TO_REAL, x);
+    final Term x = termManager.mkConst(termManager.getIntegerSort(), "x");
+    final Term xReal = termManager.mkTerm(TO_REAL, x);
 
-      final Term y = termManager.mkConst(termManager.getRealSort(), "y");
+    final Term y = termManager.mkConst(termManager.getRealSort(), "y");
 
-      final Term three = termManager.mkReal(3);
-      final Term minusTwo = termManager.mkReal(-2);
-      final Term twoThirds = termManager.mkReal(2, 3);
+    final Term three = termManager.mkReal(3);
+    final Term minusTwo = termManager.mkReal(-2);
+    final Term twoThirds = termManager.mkReal(2, 3);
 
-      final Term threeY = termManager.mkTerm(MULT, three, y);
-      final Term yOverX = termManager.mkTerm(DIVISION, y, xReal);
+    final Term threeY = termManager.mkTerm(MULT, three, y);
+    final Term yOverX = termManager.mkTerm(DIVISION, y, xReal);
 
-      final Term xGreaterEqualThreeY = termManager.mkTerm(GEQ, xReal, threeY);
-      final Term xLessEqualY = termManager.mkTerm(LEQ, x, y);
-      final Term minusTwoLessX = termManager.mkTerm(LT, minusTwo, xReal);
+    final Term xGreaterEqualThreeY = termManager.mkTerm(GEQ, xReal, threeY);
+    final Term xLessEqualY = termManager.mkTerm(LEQ, x, y);
+    final Term minusTwoLessX = termManager.mkTerm(LT, minusTwo, xReal);
 
-      final Term assumptions =
-          termManager.mkTerm(AND, xGreaterEqualThreeY, xLessEqualY, minusTwoLessX);
+    final Term assumptions =
+        termManager.mkTerm(AND, xGreaterEqualThreeY, xLessEqualY, minusTwoLessX);
 
-      final Solver solver = new Solver(termManager);
-      solver.assertFormula(assumptions);
+    final Solver solver = new Solver(termManager);
+    solver.assertFormula(assumptions);
 
-      solver.push();
-      final Term differenceLessEqualTwoThirds = termManager.mkTerm(LEQ, yOverX, twoThirds);
-      assertThat(solver.checkSatAssuming(differenceLessEqualTwoThirds))
-          .extracting(Result::isSat, BOOLEAN)
-          .isTrue();
-      solver.pop();
+    solver.push();
+    final Term differenceLessEqualTwoThirds = termManager.mkTerm(LEQ, yOverX, twoThirds);
+    assertThat(solver.checkSatAssuming(differenceLessEqualTwoThirds))
+        .extracting(Result::isSat, BOOLEAN)
+        .isTrue();
+    solver.pop();
 
-      solver.push();
-      final Term differenceIsTwoThirds = termManager.mkTerm(EQUAL, yOverX, twoThirds);
-      assertThat(solver.checkSatAssuming(differenceIsTwoThirds))
-          .extracting(Result::isSat, BOOLEAN)
-          .isTrue();
-      solver.pop();
-
-    } finally {
-      Context.deletePointers();
-    }
+    solver.push();
+    final Term differenceIsTwoThirds = termManager.mkTerm(EQUAL, yOverX, twoThirds);
+    assertThat(solver.checkSatAssuming(differenceIsTwoThirds))
+        .extracting(Result::isSat, BOOLEAN)
+        .isTrue();
+    solver.pop();
   }
 
   /** Check that expression concatenation operates correctly. */
   @Test
   void testConcat() {
-    try {
-      final TermManager termManager = new TermManager();
+    final TermManager termManager = new TermManager();
 
-      final Term x = termManager.mkString("x");
-      final Term y = termManager.mkString("y");
-      final Term xPlusY = termManager.mkTerm(STRING_CONCAT, x, y);
-      final Term xy = termManager.mkString("xy");
+    final Term x = termManager.mkString("x");
+    final Term y = termManager.mkString("y");
+    final Term xPlusY = termManager.mkTerm(STRING_CONCAT, x, y);
+    final Term xy = termManager.mkString("xy");
 
-      final Term b = termManager.mkTerm(EQUAL, xPlusY, xy);
+    final Term b = termManager.mkTerm(EQUAL, xPlusY, xy);
 
-      final Solver solver = new Solver(termManager);
+    final Solver solver = new Solver(termManager);
 
-      assertThat(solver.checkSatAssuming(b)).extracting(Result::isSat, BOOLEAN).isTrue();
-
-    } finally {
-      Context.deletePointers();
-    }
+    assertThat(solver.checkSatAssuming(b)).extracting(Result::isSat, BOOLEAN).isTrue();
   }
 }

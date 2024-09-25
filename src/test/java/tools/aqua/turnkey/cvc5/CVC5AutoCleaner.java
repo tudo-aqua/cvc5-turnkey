@@ -18,23 +18,14 @@
 
 package tools.aqua.turnkey.cvc5;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assumptions.assumeThat;
+import io.github.cvc5.Context;
+import org.junit.jupiter.api.AfterEach;
 
-import io.github.cvc5.Solver;
-import io.github.cvc5.TermManager;
-import org.junit.jupiter.api.Test;
+/** Handles pointer cleanup after using cvc5. */
+class CVC5AutoCleaner {
 
-/** Test that cvc5 native methods can successfully be invoked. */
-class CVC5LoaderTest extends CVC5AutoCleaner {
-
-  /** Invoke the {@link Solver#getVersion()} method from cvc5. */
-  @Test
-  void testLoading() {
-    final String expectedVersion = System.getProperty("expectedCVC5Version");
-    assumeThat(expectedVersion).isNotNull();
-
-    final String version = new Solver(new TermManager()).getVersion();
-    assertThat(version).contains(expectedVersion);
+  @AfterEach
+  void deletePointers() {
+    Context.deletePointers();
   }
 }

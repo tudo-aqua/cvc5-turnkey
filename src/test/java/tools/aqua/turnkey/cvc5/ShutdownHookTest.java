@@ -34,7 +34,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /** Test that the loader library schedules the unpacked cvc5 native libraries for deletion. */
-class ShutdownHookTest {
+class ShutdownHookTest extends CVC5AutoCleaner {
 
   /** The library names to look out for. */
   private static final List<String> LIBRARY_NAMES = asList("cvc5", "cvc5parser", "cvc5jni");
