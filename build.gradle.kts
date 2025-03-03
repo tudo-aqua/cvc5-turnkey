@@ -66,7 +66,7 @@ plugins {
 
 group = "tools.aqua"
 
-val cvc5Version = "1.2.0"
+val cvc5Version = "1.2.1"
 val turnkeyVersion = ""
 
 version = if (turnkeyVersion.isNotBlank()) "$cvc5Version.$turnkeyVersion" else cvc5Version
