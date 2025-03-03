@@ -51,14 +51,22 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest] # cvc5 is unstable on macOS
+        os: [macos-latest, ubuntu-latest, windows-latest]
         java-package: [liberica, microsoft, temurin, zulu]
         java-version: [8, 11, 17, 21]
-        architecture: [x64]
+        architecture: [x64, aarch64]
         exclude:
+          - os: ubuntu-latest
+            architecture: aarch64
+          - os: windows-latest
+            architecture: aarch64
           - java-package: liberica
             java-version: 11 # EOL
           - java-package: microsoft
+            java-version: 8 # Does not exist
+          - os: macos-latest
+            architecture: aarch64
+            java-package: temurin
             java-version: 8 # Does not exist
       fail-fast: false # Ensure we get all failures on all affected platforms
 
