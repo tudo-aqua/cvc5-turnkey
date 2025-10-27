@@ -41,7 +41,7 @@ jobs:
       - run: |
           ./gradlew build testRunner versionFile
           cp build/cvc5.version build/libs/cvc5-turnkey-*-test-runner.jar .
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: test-runner
           path: |
